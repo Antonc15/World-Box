@@ -94,20 +94,23 @@ public class ChunkGenerator : MonoBehaviour
 
     private float GetHeightFromCoordinate(float _x, float _y)
     {
-        float biomeValue = world.GetNoiseFromCoordinate(_x, _y);
-
-        int index = GetBiomeIndexFromValue(biomeValue);
+        TemperatureAndHumidity tempHumidity = world.GetTempHumidityFromCoordinate(_x, _y);
+        int index = GetBiomeIndexFromTemperateAndHumidity(tempHumidity);
 
         float heightValue = biomes[index].GetNoiseFromCoordinate(_x, _y);
 
         return heightValue;
     }
 
-    private int GetBiomeIndexFromValue(float _biomeValue)
+    private int GetBiomeIndexFromTemperateAndHumidity(TemperatureAndHumidity _tempHumidity)
     {
+        float temp = _tempHumidity.temperature;
+        float humidity = _tempHumidity.humidity;
+
         for (int i = 0; i < biomes.Length; i++)
         {
-            if(_biomeValue > biomes[i].maxMargin) { continue; }
+            if (temp > biomes[i].MaxTemp || temp < biomes[i].MinTemp) { continue; }
+            if (humidity > biomes[i].MaxHumidity || humidity < biomes[i].MinHumidity) { continue; }
 
             return i;
         }
@@ -119,11 +122,12 @@ public class ChunkGenerator : MonoBehaviour
 [System.Serializable]
 public class BiomeData
 {
-    // Public Fields \\
-    public float maxMargin = 100f;
-
     // Serialized Fields \\
     [SerializeField] private BiomeType biomeType;
+    [SerializeField] private float minTemperature = 50f;
+    [SerializeField] private float maxTemperature = 70f;
+    [SerializeField] private float minHumidity = 70f;
+    [SerializeField] private float maxHumidity = 80f;
 
     // Private Fields \\
     private BiomeNoise noise;
@@ -145,14 +149,41 @@ public class BiomeData
         }
     }
 
-    public BiomeNoise GetBiomeNoise()
-    {
-        return noise;
-    }
-
     public float GetNoiseFromCoordinate(float _x, float _y)
     {
         return noise.GetNoiseFromCoordinate(_x, _y);
+    }
+
+    public float MinTemp
+    {
+        get
+        {
+            return minTemperature;
+        }
+    }
+
+    public float MaxTemp
+    {
+        get
+        {
+            return maxTemperature;
+        }
+    }
+
+    public float MinHumidity
+    {
+        get
+        {
+            return minHumidity;
+        }
+    }
+
+    public float MaxHumidity
+    {
+        get
+        {
+            return maxHumidity;
+        }
     }
 
     // Private Classes \\

@@ -4,21 +4,33 @@ using UnityEngine;
 
 public class WorldNoise
 {
-    // Private Fields --- Noises \\
-    private FastNoise simplexNoise = new FastNoise();
+    // Private Fields -- Variables \\
+    private int seed = 0;
 
-    private float simplexFrequency = 0.005f;
-    private int simplexOctaves = 3;
+    // Private Fields --- Noises \\
+    private FastNoise temperatureNoise = new FastNoise();
+    private FastNoise humidityNoise = new FastNoise();
+
+    private float temperatureFrequency = 0.005f;
+    private int temperatureOctaves = 3;
+
+    private float humidityFrequency = 0.005f;
+    private int humidityOctaves = 3;
 
     // Private Methods \\
     private void Initialize()
     {
-        simplexNoise = new FastNoise();
+        temperatureNoise = new FastNoise(seed);
 
-        simplexNoise.SetNoiseType(FastNoise.NoiseType.SimplexFractal);
+        temperatureNoise.SetNoiseType(FastNoise.NoiseType.SimplexFractal);
+        temperatureNoise.SetFrequency(temperatureFrequency);
+        temperatureNoise.SetFractalOctaves(temperatureOctaves);
 
-        simplexNoise.SetFrequency(simplexFrequency);
-        simplexNoise.SetFractalOctaves(simplexOctaves);
+        humidityNoise = new FastNoise(seed + 1);
+
+        humidityNoise.SetNoiseType(FastNoise.NoiseType.Simplex);
+        humidityNoise.SetFrequency(humidityFrequency);
+        humidityNoise.SetFractalOctaves(humidityOctaves);
     }
 
     // Public Methods \\
@@ -27,13 +39,29 @@ public class WorldNoise
         Initialize();
     }
 
-    public virtual float GetNoiseFromCoordinate(float _x, float _y)
+    public virtual TemperatureAndHumidity GetTempHumidityFromCoordinate(float _x, float _y)
     {
-        float biomeValue = simplexNoise.GetNoise(_x, _y); // value is between -1 and 1
-        biomeValue += 1; // value is between 0 and 2
-        biomeValue /= 2; // value is between 0 and 1
-        biomeValue *= 100; // value is between 0 and 100
+        TemperatureAndHumidity tempHumidity = new TemperatureAndHumidity();
 
-        return biomeValue;
+        float temperature = temperatureNoise.GetNoise(_x, _y); // value is between -1 and 1
+        temperature += 1; // value is between 0 and 2
+        temperature /= 2; // value is between 0 and 1
+        temperature *= 100; // value is between 0 and 100
+
+        float humidity = humidityNoise.GetNoise(_x, _y); // value is between -1 and 1
+        humidity += 1; // value is between 0 and 2
+        humidity /= 2; // value is between 0 and 1
+        humidity *= 100; // value is between 0 and 100
+
+        tempHumidity.temperature = temperature;
+        tempHumidity.humidity = humidity;
+
+        return tempHumidity;
     }
+}
+
+public class TemperatureAndHumidity
+{
+    public float temperature = 70f; // This reflects the temperature at sea level.
+    public float humidity = 70f; // This reflects the humidity at sea level.
 }
